@@ -1,0 +1,12 @@
+{
+  "name": "accessorials-v13",
+  "version": "1.0.0",
+  "description": "DFRNT Concept V13 — Click-by-Leg Accessorials",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

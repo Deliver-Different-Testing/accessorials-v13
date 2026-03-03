@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Concept V13 — Click-by-Leg Accessorials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPeE=" crossorigin=""></script>
+<style>
+:root{
+  --ink:#0d0c2c;--ink-60:#6e6d80;--ink-20:#cfced5;--ink-10:#e9e8ec;
+  --cyan:#3bc7f4;--cyan-20:#d8f4fd;--cyan-10:#edfaff;
+  --reflex:#2a4eff;--reflex-20:#d4dcff;--reflex-10:#eef0ff;
+  --amber:#f59e0b;--amber-20:#fef3c7;--amber-10:#fffbeb;
+  --green:#13b964;--green-20:#c8f4de;--nav:#2b8585;
+  --grey:#f4f2f1;--white:#ffffff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{height:100vh;overflow:hidden;display:flex;flex-direction:column;font-family:"Inter",-apple-system,sans-serif;font-size:13px;color:var(--ink);background:var(--grey);}
+.nav-bar{height:44px;flex-shrink:0;background:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;}
+.nav-logo{color:#fff;font-weight:700;font-size:17px;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+.nav-center{display:flex;}
+.nav-link{color:rgba(255,255,255,.7);font-size:13px;padding:0 16px;height:44px;display:flex;align-items:center;cursor:pointer;border-bottom:2px solid transparent;}
+.nav-link.active{color:#fff;border-bottom-color:#fff;font-weight:600;}
+.nav-right{color:rgba(255,255,255,.7);font-size:12px;}
+.bc-row{height:36px;flex-shrink:0;background:var(--white);border-bottom:1px solid var(--ink-20);display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
+.bc-left{display:flex;align-items:center;gap:8px;}
+.bc-back{color:var(--ink-60);cursor:pointer;font-size:18px;}
+.bc-select{font-family:"Inter",sans-serif;font-size:13px;border:1px solid var(--ink-20);border-radius:4px;padding:3px 8px;color:var(--ink);background:white;min-width:220px;}
+.bc-update{color:var(--cyan);font-weight:600;cursor:pointer;font-size:13px;}
+.bc-center{text-align:center;}
+.bc-center .lbl{font-size:12px;font-weight:700;}
+.bc-center .sub{font-size:11px;color:var(--ink-60);}
+.bc-reset{color:var(--ink-60);font-size:13px;cursor:pointer;}
+.main{display:flex;flex:1;overflow:hidden;}
+.form-area{display:flex;background:var(--white);flex:3;overflow-y:auto;}
+.col{padding:14px 16px;border-right:1px solid var(--ink-20);flex:1;min-width:0;overflow-y:auto;}
+.col3{overflow-y:auto;}
+.map-col{flex:1;min-width:0;}
+.sec-head{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin:14px 0 8px;}
+.sec-head:first-child{margin-top:0;}
+.fg{margin-bottom:9px;}
+.fl{font-size:11px;color:var(--ink-60);margin-bottom:3px;}
+.fl .req{color:#c00;}
+.fi{width:100%;padding:6px 8px;font-family:"Inter",sans-serif;font-size:13px;color:var(--ink);border:1px solid var(--ink-20);border-radius:4px;outline:none;background:white;}
+.fi:focus{border-color:var(--cyan);}
+.fta{width:100%;padding:6px 8px;font-family:"Inter",sans-serif;font-size:12px;color:var(--ink);border:1px solid var(--ink-20);border-radius:4px;resize:none;height:50px;outline:none;}
+.frow{display:flex;gap:8px;}
+.frow .fg{flex:1;}
+.addr-from{font-size:11px;color:var(--ink-60);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.addr-from strong{color:var(--ink);font-weight:600;}
+.toggle-grp{display:flex;border:1px solid var(--ink-20);border-radius:6px;overflow:hidden;margin-bottom:9px;}
+.tog{flex:1;padding:6px;font-family:"Inter",sans-serif;font-size:13px;border:none;cursor:pointer;background:white;color:var(--ink-60);}
+.tog.on{background:var(--ink);color:white;font-weight:600;}
+
+/* Service card */
+.svc-card{border:1.5px solid var(--ink-20);border-radius:8px;margin-bottom:10px;overflow:hidden;cursor:pointer;transition:border-color .15s;}
+.svc-card:hover:not(.selected){border-color:var(--ink-60);}
+.svc-card.selected{border-color:var(--ink);cursor:default;}
+.svc-card-hdr{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;}
+.svc-icon{font-size:22px;flex-shrink:0;padding-top:1px;}
+.svc-info{flex:1;min-width:0;}
+.svc-name{font-weight:700;font-size:13px;}
+.svc-sub{font-size:11px;color:var(--ink-60);margin-top:1px;}
+.svc-right{text-align:right;flex-shrink:0;}
+.svc-price{font-weight:700;font-size:14px;}
+.svc-fast{display:inline-block;font-size:10px;font-weight:700;background:var(--green-20);color:var(--green);padding:1px 6px;border-radius:9999px;margin-top:3px;}
+.svc-card.selected .svc-card-hdr{border-left:3px solid var(--green);}
+.svc-bd{border-top:1px solid var(--ink-20);}
+
+/* Leg rows */
+.leg-row{border-bottom:1px solid var(--ink-10);cursor:pointer;transition:background .1s;}
+.leg-row:hover .leg-row-hdr{background:var(--grey);}
+.leg-row.open .leg-row-hdr{background:var(--grey);}
+.leg-row-hdr{display:flex;align-items:center;gap:8px;padding:8px 12px;user-select:none;}
+.leg-icon{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
+.leg-title{flex:1;min-width:0;}
+.leg-name{font-size:12px;font-weight:700;}
+.leg-sub{font-size:10px;color:var(--ink-60);margin-top:1px;}
+.leg-badge{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.leg-cnt{font-size:11px;font-weight:700;padding:2px 8px;border-radius:9999px;background:var(--ink-10);color:var(--ink-60);}
+.leg-cnt.has{background:var(--cyan-20);color:var(--ink);}
+.leg-arrow{font-size:10px;color:var(--ink-60);transition:transform .15s;display:inline-block;width:12px;}
+.leg-row.open .leg-arrow{transform:rotate(90deg);}
+
+/* Colour-coded leg types */
+.leg-row.lt-pickup .leg-row-hdr{border-left:3px solid var(--cyan);}
+.leg-row.lt-transit .leg-row-hdr{border-left:3px solid var(--amber);}
+.leg-row.lt-linehaul .leg-row-hdr{border-left:3px solid var(--amber);}
+.leg-row.lt-delivery .leg-row-hdr{border-left:3px solid var(--reflex);}
+
+/* Expanded accessorial panel */
+.leg-panel{display:none;border-top:1px solid var(--ink-10);}
+.leg-row.open .leg-panel{display:block;}
+.lp-search-row{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--white);border-bottom:1px solid var(--ink-10);}
+.lp-search{flex:1;padding:4px 8px;border:1px solid var(--ink-20);border-radius:4px;font-size:12px;font-family:"Inter",sans-serif;outline:none;}
+.lp-search:focus{border-color:var(--cyan);}
+.lp-clear{font-size:11px;color:var(--cyan);cursor:pointer;font-weight:600;white-space:nowrap;}
+.lp-list{max-height:200px;overflow-y:auto;}
+.lp-row{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;border-bottom:1px solid var(--ink-10);}
+.lp-row:hover{background:var(--grey);}
+.lp-row.on{background:var(--cyan-10);}
+.lp-row.hidden{display:none;}
+.lp-cb{width:14px;height:14px;flex-shrink:0;accent-color:var(--ink);}
+.lp-name{flex:1;font-size:12px;font-weight:500;}
+.lp-price{font-size:11px;color:var(--ink-60);}
+.lp-unit{font-size:10px;color:var(--ink-60);opacity:.7;min-width:28px;text-align:right;}
+.lp-empty{padding:10px 12px;font-size:11px;color:var(--ink-60);text-align:center;}
+
+/* Svc summary */
+.svc-sum{padding:8px 12px;border-top:1px solid var(--ink-20);background:white;}
+.svc-sum-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;color:var(--ink-60);}
+.svc-sum-row .v{color:var(--ink);}
+.svc-sum-row.ap .v{color:var(--cyan);}
+.svc-sum-row.at .v{color:var(--amber);}
+.svc-sum-row.ad .v{color:var(--reflex);}
+.svc-sum-row.total{font-size:13px;font-weight:700;color:var(--ink);border-top:1px solid var(--ink-20);margin-top:3px;padding-top:5px;}
+
+/* Bottom bar */
+.bot{height:52px;flex-shrink:0;background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 24px;}
+.bot-stats{display:flex;gap:28px;}
+.bstat .lbl{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;}
+.bstat .val{font-size:14px;font-weight:700;color:white;}
+.bstat .val.c{color:var(--cyan);}
+.bstat .val.a{color:var(--amber);}
+.bstat .val.r{color:#8fa0ff;}
+.book-btn{padding:10px 30px;background:var(--cyan);color:var(--ink);font-family:"Inter",sans-serif;font-size:14px;font-weight:700;border:none;border-radius:9999px;cursor:pointer;}
+.book-btn:hover{background:#2db8e6;}
+.concept-badge{position:fixed;bottom:60px;right:12px;background:var(--ink);color:white;font-size:10px;font-weight:700;padding:3px 9px;border-radius:9999px;opacity:.6;pointer-events:none;z-index:999;}
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <div class="nav-logo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
+      <path d="M7 12 L12 7 L17 12 L12 17 Z" fill="rgba(255,255,255,.85)"/>
+    </svg>
+    DFRNT
+  </div>
+  <div class="nav-center">
+    <div class="nav-link active">Home</div>
+    <div class="nav-link">Job List</div>
+    <div class="nav-link">Settings</div>
+  </div>
+  <div class="nav-right">DFRNT Hub</div>
+</div>
+
+<div class="bc-row">
+  <div class="bc-left">
+    <span class="bc-back">‹</span>
+    <select class="bc-select"><option>Lykes ABQ Test</option></select>
+    <span class="bc-update">Update</span>
+  </div>
+  <div class="bc-center">
+    <div class="lbl">Booking as LYKES</div>
+    <div class="sub">Agent Rates — Lykes</div>
+  </div>
+  <div class="bc-reset">Reset</div>
+</div>
+
+<div class="main">
+<div class="form-area">
+
+  <!-- Col 1: Addresses -->
+  <div class="col">
+    <div class="sec-head">Pick Up From</div>
+    <div class="addr-from"><span>From: <strong>United States Postal Service</strong></span><span>🗑</span></div>
+    <div class="fg"><input class="fi" value="1135 Broadway Boulevard NE, Albuquerque, NM 87101"></div>
+    <div class="fg"><div class="fl">Contact <span class="req">*</span></div><input class="fi" value="Mike"></div>
+    <div class="fg"><div class="fl">Phone</div><input class="fi" placeholder="—"></div>
+    <div class="sec-head">Deliver To</div>
+    <div class="addr-from"><span>To: <strong>Martineztown Park</strong></span><span style="font-size:11px">⇅</span></div>
+    <div class="fg"><input class="fi" value="500 Roma Avenue NE, Albuquerque, NM 87102"></div>
+    <div class="fg"><div class="fl">Contact Name</div><input class="fi" placeholder="—"></div>
+    <div class="fg"><div class="fl">Contact Phone</div><input class="fi" placeholder="—"></div>
+  </div>
+
+  <!-- Col 2: Package -->
+  <div class="col">
+    <div class="sec-head">Package</div>
+    <div class="fg"><div class="fl">Vehicle:</div><select class="fi"><option>LTL</option></select></div>
+    <div class="toggle-grp"><button class="tog on">Standard</button><button class="tog">Custom</button></div>
+    <div class="fg"><div class="fl">Package Type:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+        <button class="tog" style="flex:none;padding:5px 10px;border:1px solid var(--ink-20);border-radius:4px;font-size:12px;background:white;cursor:pointer">Envelope</button>
+        <button class="tog" style="flex:none;padding:5px 10px;border:1px solid var(--ink-20);border-radius:4px;font-size:12px;background:white;cursor:pointer">Package</button>
+        <button class="tog on" style="flex:none;padding:5px 10px;border:1px solid var(--ink);border-radius:4px;font-size:12px;background:var(--ink);color:white;cursor:pointer">Pallet</button>
+        <button class="tog" style="flex:none;padding:5px 10px;border:1px solid var(--ink-20);border-radius:4px;font-size:12px;background:white;cursor:pointer">Crate</button>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg"><div class="fl">Quantity</div><input class="fi" value="1"></div>
+      <div class="fg"><div class="fl">Weight (lb)</div><input class="fi" value="1100"></div>
+    </div>
+    <div class="fg" style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="dg"> <label for="dg">Any Dangerous Goods?</label></div>
+    <div class="sec-head">Date + Time</div>
+    <div class="fg"><select class="fi"><option>Ready Now / Deliver ASAP (MST)</option></select></div>
+    <div class="sec-head">Tracking</div>
+    <div class="fg"><div class="fl">Method:</div><select class="fi"><option>Web Site</option></select></div>
+    <div class="fg"><div class="fl">Leave Parcel:</div><select class="fi"><option>Sig Required</option></select></div>
+  </div>
+
+  <!-- Col 3: References + Service -->
+  <div class="col col3">
+    <div class="sec-head">References</div>
+    <div class="fg"><div class="fl">Client Ref A <span class="req">*</span></div><input class="fi" value="LYK-2026-0412"></div>
+    <div class="fg"><div class="fl">Client Ref B</div><input class="fi" placeholder="Optional"></div>
+    <div class="fg"><div class="fl">Client Notes:</div><textarea class="fta" placeholder="For your reference only — not seen by couriers."></textarea></div>
+
+    <div class="sec-head">Service</div>
+
+    <!-- S1: Courier -->
+    <div class="svc-card" id="card-s1" onclick="selSvc('s1')">
+      <div class="svc-card-hdr">
+        <div class="svc-icon">🚗</div>
+        <div class="svc-info">
+          <div class="svc-name">Default Distance Rate Sprinter</div>
+          <div class="svc-sub">*All Services</div>
+        </div>
+        <div class="svc-right">
+          <div class="svc-price" id="px-s1">US$98.16</div>
+          <div class="svc-fast">Fastest</div>
+        </div>
+      </div>
+      <div class="svc-bd" id="bd-s1" style="display:none" onclick="event.stopPropagation()">
+        <div class="leg-row lt-pickup" id="lr-s1-job">
+          <div class="leg-row-hdr" onclick="toggleLeg('s1','job')">
+            <span class="leg-icon">🚗</span>
+            <div class="leg-title">
+              <div class="leg-name">Courier Job</div>
+              <div class="leg-sub">ABQ → ABQ · $98.16 · All add-ons apply to this job</div>
+            </div>
+            <div class="leg-badge">
+              <span class="leg-cnt" id="lc-s1-job">0 charges</span>
+              <span class="leg-arrow">▶</span>
+            </div>
+          </div>
+          <div class="leg-panel">
+            <div class="lp-search-row">
+              <input class="lp-search" type="text" placeholder="Search charges..." oninput="filterLeg('s1','job',this.value)">
+              <span class="lp-clear" onclick="clearLeg('s1','job')">Clear</span>
+            </div>
+            <div class="lp-list" id="ll-s1-job"></div>
+          </div>
+        </div>
+        <div class="svc-sum">
+          <div class="svc-sum-row"><span>Base rate</span><span class="v">$98.16</span></div>
+          <div class="svc-sum-row ap" id="pr-s1-add" style="display:none"><span>Add-ons</span><span class="v" id="pv-s1-add">$0.00</span></div>
+          <div class="svc-sum-row total"><span>Total</span><span class="v" id="tot-s1">$98.16</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S2: Airfreight -->
+    <div class="svc-card selected" id="card-s2" onclick="selSvc('s2')">
+      <div class="svc-card-hdr">
+        <div class="svc-icon">✈️</div>
+        <div class="svc-info">
+          <div class="svc-name">Door to Door Airfreight</div>
+          <div class="svc-sub">Click each leg below to add charges</div>
+        </div>
+        <div class="svc-right">
+          <div class="svc-price" id="px-s2">US$399.50</div>
+        </div>
+      </div>
+      <div class="svc-bd" id="bd-s2" onclick="event.stopPropagation()">
+        <div class="leg-row lt-pickup open" id="lr-s2-pickup">
+          <div class="leg-row-hdr" onclick="toggleLeg('s2','pickup')">
+            <span class="leg-icon">📍</span>
+            <div class="leg-title">
+              <div class="leg-name">Pickup Leg</div>
+              <div class="leg-sub">ABQ · Local courier pickup</div>
+            </div>
+            <div class="leg-badge">
+              <span class="leg-cnt" id="lc-s2-pickup">0 charges</span>
+              <span class="leg-arrow">▶</span>
+            </div>
+          </div>
+          <div class="leg-panel">
+            <div class="lp-search-row">
+              <input class="lp-search" type="text" placeholder="Search pickup charges..." oninput="filterLeg('s2','pickup',this.value)">
+              <span class="lp-clear" onclick="clearLeg('s2','pickup')">Clear</span>
+            </div>
+            <div class="lp-list" id="ll-s2-pickup"></div>
+          </div>
+        </div>
+        <div class="leg-row lt-transit" id="lr-s2-transit">
+          <div class="leg-row-hdr" onclick="toggleLeg('s2','transit')">
+            <span class="leg-icon">✈️</span>
+            <div class="leg-title">
+              <div class="leg-name">Air Transit</div>
+              <div class="leg-sub">ABQ → SFO · $209.00</div>
+            </div>
+            <div class="leg-badge">
+              <span class="leg-cnt" id="lc-s2-transit">0 charges</span>
+              <span class="leg-arrow">▶</span>
+            </div>
+          </div>
+          <div class="leg-panel">
+            <div class="lp-search-row">
+              <input class="lp-search" type="text" placeholder="Search transit charges..." oninput="filterLeg('s2','transit',this.value)">
+              <span class="lp-clear" onclick="clearLeg('s2','transit')">Clear</span>
+            </div>
+            <div class="lp-list" id="ll-s2-transit"></div>
+          </div>
+        </div>
+        <div class="leg-row lt-delivery" id="lr-s2-delivery">
+          <div class="leg-row-hdr" onclick="toggleLeg('s2','delivery')">
+            <span class="leg-icon">📦</span>
+            <div class="leg-title">
+              <div class="leg-name">Delivery Leg</div>
+              <div class="leg-sub">SFO · Local courier delivery</div>
+            </div>
+            <div class="leg-badge">
+              <span class="leg-cnt" id="lc-s2-delivery">0 charges</span>
+              <span class="leg-arrow">▶</span>
+            </div>
+          </div>
+          <div class="leg-panel">
+            <div class="lp-search-row">
+              <input class="lp-search" type="text" placeholder="Search delivery charges..." oninput="filterLeg('s2','delivery',this.value)">
+              <span class="lp-clear" onclick="clearLeg('s2','delivery')">Clear</span>
+            </div>
+            <div class="lp-list" id="ll-s2-delivery"></div>
+          </div>
+        </div>
+        <div class="svc-sum">
+          <div class="svc-sum-row"><span>Base rate</span><span class="v">$399.50</span></div>
+          <div class="svc-sum-row ap" id="pr-s2-p" style="display:none"><span>Pickup add-ons</span><span class="v" id="pv-s2-p">$0.00</span></div>
+          <div class="svc-sum-row at" id="pr-s2-t" style="display:none"><span>Transit add-ons</span><span class="v" id="pv-s2-t">$0.00</span></div>
+          <div class="svc-sum-row ad" id="pr-s2-d" style="display:none"><span>Delivery add-ons</span><span class="v" id="pv-s2-d">$0.00</span></div>
+          <div class="svc-sum-row total"><span>Total</span><span class="v" id="tot-s2">$399.50</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S3: Multi-linehaul -->
+    <div class="svc-card" id="card-s3" onclick="selSvc('s3')">
+      <div class="svc-card-hdr">
+        <div class="svc-icon">🚛</div>
+        <div class="svc-info">
+          <div class="svc-name">Door to Door Multi-Linehaul</div>
+          <div class="svc-sub">Pickup → Linehaul 1 → Linehaul 2 → Delivery</div>
+        </div>
+        <div class="svc-right">
+          <div class="svc-price" id="px-s3">US$485.00</div>
+        </div>
+      </div>
+      <div class="svc-bd" id="bd-s3" style="display:none" onclick="event.stopPropagation()">
+        <div class="leg-row lt-pickup" id="lr-s3-pickup">
+          <div class="leg-row-hdr" onclick="toggleLeg('s3','pickup')">
+            <span class="leg-icon">📍</span>
+            <div class="leg-title"><div class="leg-name">Pickup Leg</div><div class="leg-sub">ABQ · Local courier pickup</div></div>
+            <div class="leg-badge"><span class="leg-cnt" id="lc-s3-pickup">0 charges</span><span class="leg-arrow">▶</span></div>
+          </div>
+          <div class="leg-panel">
+            <div class="lp-search-row"><input class="lp-search" type="text" placeholder="Search pickup charges..." oninput="filterLeg('s3','pickup',this.value)"><span class="lp-clear" onclick="clearLeg('s3','pickup')">Clear</span></div>
+            <div class="lp-list" id="ll-s3-pickup"></div>
+          </div>
+        </div>
+        <div class="leg-row lt-linehaul" id="lr-s3-lh1">
+          <div class="leg-row-hdr" onclick="toggleLeg('s3','lh1')">
+            <span class="leg-icon">🚛</span>
+            <div class="leg-title"><div class="leg-name">Linehaul 1</div><div class="leg-sub">ABQ → Dallas · $155.00</div></div>
+            <div class="leg-badge"><span class="leg-cnt" id="lc-s3-lh1">0 charges</span><span class="leg-arrow">▶</span></div>
+          </div>
+          <div class="leg-panel">
+            <div class="lp-search-row"><input class="lp-search" type="text" placeholder="Search linehaul charges..." oninput="filterLeg('s3','lh1',this.value)"><span class="lp-clear" onclick="clearLeg('s3','lh1')">Clear</span></div>
+            <div class="lp-list" id="ll-s3-lh1"></div>
+          </div>
+        </div>
+        <div class="leg-row lt-linehaul" id="lr-s3-lh2">
+          <div class="leg-row-hdr" onclick="toggleLeg('s3','lh2')">
+            <span class="leg-icon">🚛</span>
+            <div class="leg-title"><div class="leg-name">Linehaul 2</div><div class="leg-sub">Dallas → SFO · $185.00</div></div>
+            <div class="leg-badge"><span class="leg-cnt" id="lc-s3-lh2">0 charges</span><span class="leg-arrow">▶</span></div>
+          </div>
+          <div class="leg-panel">
+            <div class="lp-search-row"><input class="lp-search" type="text" placeholder="Search linehaul charges..." oninput="filterLeg('s3','lh2',this.value)"><span class="lp-clear" onclick="clearLeg('s3','lh2')">Clear</span></div>
+            <div class="lp-list" id="ll-s3-lh2"></div>
+          </div>
+        </div>
+        <div class="leg-row lt-delivery" id="lr-s3-delivery">
+          <div class="leg-row-hdr" onclick="toggleLeg('s3','delivery')">
+            <span class="leg-icon">📦</span>
+            <div class="leg-title"><div class="leg-name">Delivery Leg</div><div class="leg-sub">SFO · Local courier delivery</div></div>
+            <div class="leg-badge"><span class="leg-cnt" id="lc-s3-delivery">0 charges</span><span class="leg-arrow">▶</span></div>
+          </div>
+          <div class="leg-panel">
+            <div class="lp-search-row"><input class="lp-search" type="text" placeholder="Search delivery charges..." oninput="filterLeg('s3','delivery',this.value)"><span class="lp-clear" onclick="clearLeg('s3','delivery')">Clear</span></div>
+            <div class="lp-list" id="ll-s3-delivery"></div>
+          </div>
+        </div>
+        <div class="svc-sum">
+          <div class="svc-sum-row"><span>Base rate</span><span class="v">$485.00</span></div>
+          <div class="svc-sum-row ap" id="pr-s3-p" style="display:none"><span>Pickup add-ons</span><span class="v" id="pv-s3-p">$0.00</span></div>
+          <div class="svc-sum-row at" id="pr-s3-l" style="display:none"><span>Linehaul add-ons</span><span class="v" id="pv-s3-l">$0.00</span></div>
+          <div class="svc-sum-row ad" id="pr-s3-d" style="display:none"><span>Delivery add-ons</span><span class="v" id="pv-s3-d">$0.00</span></div>
+          <div class="svc-sum-row total"><span>Total</span><span class="v" id="tot-s3">$485.00</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /col3 -->
+</div><!-- /form-area -->
+
+<div class="map-col" id="map" style="flex:1;min-width:0;"></div>
+</div>
+
+<div class="bot">
+  <div class="bot-stats">
+    <div class="bstat"><div class="lbl">Base Rate</div><div class="val" id="bb-base">$399.50</div></div>
+    <div class="bstat"><div class="lbl">Pickup Add-Ons</div><div class="val c" id="bb-p">$0.00</div></div>
+    <div class="bstat"><div class="lbl">Transit Add-Ons</div><div class="val a" id="bb-t">$0.00</div></div>
+    <div class="bstat"><div class="lbl">Delivery Add-Ons</div><div class="val r" id="bb-d">$0.00</div></div>
+    <div class="bstat"><div class="lbl">Total</div><div class="val" id="bb-tot">$399.50</div></div>
+  </div>
+  <button class="book-btn">Book Job</button>
+</div>
+<div class="concept-badge">V13 · Click-by-Leg</div>
+
+<script>
+const CHARGES = [
+  {id:'lift-gate',   name:'Lift Gate',          price:35,    unit:'flat', legs:['pickup','delivery']},
+  {id:'extra-man',   name:'Extra Man',           price:60,    unit:'/hr',  legs:['pickup','delivery']},
+  {id:'hazmat',      name:'Hazmat',              price:25,    unit:'flat', legs:['pickup','transit','delivery']},
+  {id:'cross-dock',  name:'Cross Dock',          price:0.64,  unit:'/lb',  legs:['transit']},
+  {id:'banding',     name:'Banding',             price:20,    unit:'/pl',  legs:['pickup']},
+  {id:'pallet-build',name:'Pallet Build & Wrap', price:45,    unit:'/pl',  legs:['pickup']},
+  {id:'pallet-band', name:'Build, Wrap & Band',  price:65,    unit:'/pl',  legs:['pickup']},
+  {id:'pallet-exch', name:'Pallet Exchange',     price:30,    unit:'/pl',  legs:['pickup','delivery']},
+  {id:'wait-st',     name:'Wait/Delay Straight', price:50,    unit:'/hr',  legs:['pickup']},
+  {id:'wait-tt',     name:'Wait/Delay Tractor',  price:85,    unit:'/hr',  legs:['delivery']},
+  {id:'recovery',    name:'Recovery/Transfer',   price:0.03,  unit:'/lb',  legs:['pickup']},
+  {id:'inside-del',  name:'Inside Delivery',     price:0.035, unit:'/lb',  legs:['delivery']},
+  {id:'ltd-access',  name:'Limited Access',      price:0.035, unit:'/lb',  legs:['delivery']},
+  {id:'stair-carry', name:'Stair Carry',         price:25,    unit:'/flt', legs:['delivery']},
+  {id:'unpack',      name:'Unpack',              price:0.05,  unit:'/lb',  legs:['delivery']},
+  {id:'trash',       name:'Trash Removal',       price:30,    unit:'flat', legs:['delivery']},
+  {id:'storage-d',   name:'Storage Daily',       price:15,    unit:'/pl',  legs:['delivery']},
+  {id:'coi',         name:'Cert. of Insurance',  price:35,    unit:'flat', legs:['delivery']},
+  {id:'notification',name:'Notification',        price:25,    unit:'flat', legs:['pickup','delivery']},
+  {id:'product-pack',name:'Product Packing',     price:0,     unit:'Quote',legs:['pickup']},
+];
+
+const LEG_TYPE_MAP = {
+  job:      ['pickup','transit','delivery'],
+  pickup:   ['pickup'],
+  transit:  ['transit'],
+  lh1:      ['transit'],
+  lh2:      ['transit'],
+  delivery: ['delivery'],
+};
+
+const BASE = {s1:98.16, s2:399.50, s3:485.00};
+const SEL  = {s1:{job:{}}, s2:{pickup:{},transit:{},delivery:{}}, s3:{pickup:{},lh1:{},lh2:{},delivery:{}}};
+let curSvc = 's2';
+
+function buildLegList(svcId, legId) {
+  var el = document.getElementById('ll-'+svcId+'-'+legId); if (!el) return;
+  var accepted = LEG_TYPE_MAP[legId] || [];
+  var charges = CHARGES.filter(function(c){ return c.legs.some(function(l){ return accepted.indexOf(l) >= 0; }); });
+  if (!charges.length) { el.innerHTML = '<div class="lp-empty">No charges available for this leg</div>'; return; }
+  var q = "'";
+  el.innerHTML = charges.map(function(c) {
+    var on = SEL[svcId][legId] && SEL[svcId][legId][c.id];
+    return '<div class="lp-row'+(on?' on':'')+'" id="lpr-'+svcId+'-'+legId+'-'+c.id+'" data-cid="'+c.id+'" onclick="toggleCharge('+q+svcId+q+','+q+legId+q+','+q+c.id+q+')">'
+      +'<input type="checkbox" class="lp-cb" '+(on?'checked':'')+' onclick="event.stopPropagation();toggleCharge('+q+svcId+q+','+q+legId+q+','+q+c.id+q+')">'
+      +'<span class="lp-name">'+c.name+'</span>'
+      +'<span class="lp-price">'+fmtP(c)+'</span>'
+      +'<span class="lp-unit">'+c.unit+'</span>'
+      +'</div>';
+  }).join('');
+}
+
+function fmtP(c) { if (c.unit==='Quote') return 'Quote'; return '$'+(c.price<1?c.price.toFixed(3):c.price.toFixed(2)); }
+
+function toggleCharge(svcId, legId, cid) {
+  if (!SEL[svcId][legId]) SEL[svcId][legId] = {};
+  if (SEL[svcId][legId][cid]) delete SEL[svcId][legId][cid]; else SEL[svcId][legId][cid] = true;
+  var row = document.getElementById('lpr-'+svcId+'-'+legId+'-'+cid);
+  if (row) { var on = !!SEL[svcId][legId][cid]; row.classList.toggle('on', on); var cb = row.querySelector('.lp-cb'); if (cb) cb.checked = on; }
+  updLegBadge(svcId, legId); upd(svcId);
+}
+
+function toggleLeg(svcId, legId) {
+  var row = document.getElementById('lr-'+svcId+'-'+legId); if (!row) return;
+  var wasOpen = row.classList.contains('open');
+  row.classList.toggle('open', !wasOpen);
+  if (!wasOpen) buildLegList(svcId, legId);
+}
+
+function filterLeg(svcId, legId, q) {
+  q = (q||'').toLowerCase().trim();
+  var el = document.getElementById('ll-'+svcId+'-'+legId); if (!el) return;
+  el.querySelectorAll('.lp-row[data-cid]').forEach(function(row) {
+    var c = CHARGES.find(function(x){return x.id===row.dataset.cid;});
+    if (!c) return;
+    row.classList.toggle('hidden', !(!q || c.name.toLowerCase().indexOf(q) >= 0));
+  });
+}
+
+function clearLeg(svcId, legId) { SEL[svcId][legId] = {}; buildLegList(svcId, legId); updLegBadge(svcId, legId); upd(svcId); }
+
+function updLegBadge(svcId, legId) {
+  var el = document.getElementById('lc-'+svcId+'-'+legId); if (!el) return;
+  var cnt = Object.keys(SEL[svcId][legId] || {}).length;
+  el.textContent = cnt === 0 ? '0 charges' : cnt + ' charge' + (cnt !== 1 ? 's' : '');
+  el.classList.toggle('has', cnt > 0);
+}
+
+function upd(svcId) {
+  var base = BASE[svcId];
+  var pAdd=0,tAdd=0,dAdd=0;
+  function sumLeg(legId) { return Object.keys(SEL[svcId][legId]||{}).reduce(function(t,cid){ var c=CHARGES.find(function(x){return x.id===cid;}); return t+(c?c.price:0); },0); }
+  if (svcId==='s1') { pAdd=sumLeg('job'); }
+  else if (svcId==='s2') { pAdd=sumLeg('pickup'); tAdd=sumLeg('transit'); dAdd=sumLeg('delivery'); }
+  else if (svcId==='s3') { pAdd=sumLeg('pickup'); tAdd=sumLeg('lh1')+sumLeg('lh2'); dAdd=sumLeg('delivery'); }
+  var total = base+pAdd+tAdd+dAdd;
+  if (svcId==='s1') { setText('px-s1','US$'+total.toFixed(2)); setShow('pr-s1-add',pAdd>0); setText('pv-s1-add','$'+pAdd.toFixed(2)); setText('tot-s1','$'+total.toFixed(2)); }
+  else if (svcId==='s2') { setText('px-s2','US$'+total.toFixed(2)); setShow('pr-s2-p',pAdd>0); setText('pv-s2-p','$'+pAdd.toFixed(2)); setShow('pr-s2-t',tAdd>0); setText('pv-s2-t','$'+tAdd.toFixed(2)); setShow('pr-s2-d',dAdd>0); setText('pv-s2-d','$'+dAdd.toFixed(2)); setText('tot-s2','$'+total.toFixed(2)); }
+  else if (svcId==='s3') { setText('px-s3','US$'+total.toFixed(2)); setShow('pr-s3-p',pAdd>0); setText('pv-s3-p','$'+pAdd.toFixed(2)); setShow('pr-s3-l',tAdd>0); setText('pv-s3-l','$'+tAdd.toFixed(2)); setShow('pr-s3-d',dAdd>0); setText('pv-s3-d','$'+dAdd.toFixed(2)); setText('tot-s3','$'+total.toFixed(2)); }
+  if (svcId===curSvc) { setText('bb-base','$'+base.toFixed(2)); setText('bb-p','$'+pAdd.toFixed(2)); setText('bb-t','$'+tAdd.toFixed(2)); setText('bb-d','$'+dAdd.toFixed(2)); setText('bb-tot','$'+total.toFixed(2)); }
+}
+
+function setText(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+function setShow(id,v){ var e=document.getElementById(id); if(e) e.style.display=v?'':'none'; }
+
+function selSvc(sid) {
+  if (curSvc===sid) return;
+  document.getElementById('card-'+curSvc).classList.remove('selected');
+  document.getElementById('bd-'+curSvc).style.display='none';
+  curSvc=sid;
+  document.getElementById('card-'+sid).classList.add('selected');
+  document.getElementById('bd-'+sid).style.display='';
+  upd(sid);
+}
+
+window.addEventListener('load', function() {
+  buildLegList('s2','pickup');
+  document.getElementById('lr-s2-pickup').classList.add('open');
+  buildLegList('s1','job');
+  upd('s1'); upd('s2'); upd('s3');
+
+  // Map (Leaflet + OpenStreetMap)
+  var map = L.map('map', {zoomControl:true}).setView([35.1, -106.6], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(map);
+  var pin = function(color) {
+    return L.divIcon({html:'<div style="background:'+color+';width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></div>',iconSize:[11,11],iconAnchor:[5.5,5.5]});
+  };
+  L.marker([35.113,-106.628],{icon:pin('#e11d48')}).bindTooltip('Pickup · ABQ').addTo(map);
+  L.marker([35.085,-106.647],{icon:pin('#3bc7f4')}).bindTooltip('Delivery · ABQ').addTo(map);
+  L.polyline([[35.113,-106.628],[35.085,-106.647]],{color:'#3bc7f4',weight:2.5,dashArray:'6 4'}).addTo(map);
+});
+</script>
+
+</body>
+</html>
